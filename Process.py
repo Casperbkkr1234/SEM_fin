@@ -137,9 +137,9 @@ class GBM:
 
 		#plt.style.use('seaborn')
 		# Define time interval correctly
-		time = np.linspace(0, self.years, self.n_steps + 1)
+		time = np.linspace(0, self.years, self.n_steps)# + 1)
 		# Require numpy array that is the same shape as St
-		tt = np.full(shape=(self.n_paths, self.n_steps + 1), fill_value=time).T
+		tt = np.full(shape=(self.n_paths, self.n_steps), fill_value=time).T
 
 		plt.plot(tt, paths)
 		plt.xlabel("Years $(t)$")
