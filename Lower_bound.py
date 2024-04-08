@@ -1,5 +1,8 @@
+import torch
+
 from Approximator import C_theta
 import numpy as np
+from Payoff import Payoff
 
 class L_hat():
 	def __init__(self, dimension, widths, n_steps):
@@ -15,15 +18,21 @@ class L_hat():
 			networks.append(c_theta_n)
 		return networks
 
-	def Stopping_times(self, paths, n_steps, f_g):
-		stopping_times = np.arrange(0, self.n_steps)
+	def Stopping_times(self, paths, n_steps):#, payoff):
+		stopping_times = np.arange(0, self.n_steps)
+		P = Payoff()
+		g = P.American(paths, 2, 1)
+		g = torch.Tensor(g)
+		paths = torch.Tensor(paths)
+		g = g.unsqueeze(1)
+		paths = paths.unsqueeze(1)
 		for i in range(1, n_steps):
 			j = n_steps - i
-			network = self.c_thetas[j,:]
-			g = None # TODO add call function
-			network.Train(paths[j,:], g)
+			network = self.c_thetas[j]
 
-			if g >= network.forward(paths[j,:]):
+			network.Train(paths[j,:,:], g[j,:,:])
+			# TODO make work
+			if g[j,:,:] >= network.forward(paths[j,:,:]):
 				stopping_times[j-1] = j
 			else:
 				stopping_times[j-1] = stopping_times[j]

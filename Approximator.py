@@ -13,7 +13,7 @@ class C_theta(nn.Module):
 		self.dimension = d
 		self.widths = widths
 		self.depth= len(widths) + 2
-		self.loss = nn.MSELoss
+		self.loss = nn.MSELoss()
 		self.activation = nn.Tanh
 		self.network = self.Create_network()
 		self.optimizer = torch.optim.SGD(self.parameters(), lr=0.001, momentum=0.9)
@@ -43,10 +43,12 @@ class C_theta(nn.Module):
 
 	def Train(self, X_t: np.ndarray, target: np.ndarray) -> list:
 		running_loss = []
-		for i in range(X_t.size[0]):
+		for (i, idx) in enumerate(X_t.T):
 			self.optimizer.zero_grad()
-			output = self.forward(X_t[i])
-			loss = self.loss(output, target[i])
+
+			output = self.forward(idx)
+			a = target[:,i]
+			loss = self.loss(output, target[:,i])
 			loss.backward()
 			self.optimizer.step()
 
