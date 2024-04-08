@@ -51,7 +51,6 @@ class GBM:
 		                        np.sqrt(dt),
 		                        [n_paths, n_steps])  # returns numpy array with random samples from N(0,sqrt(dt))
 
-
 	def Make_wiener(self) -> np.ndarray:
 		"""Returns Wiener paths"""
 		n_paths = self.n_paths
@@ -65,7 +64,6 @@ class GBM:
 		self.Wiener = Wiener_paths
 
 		return Wiener_paths
-
 
 	def GBM_analytic(self) -> np.ndarray:
 		"""Returns Geometric brownian motion paths"""
@@ -90,8 +88,6 @@ class GBM:
 		self.analytic_paths = gbm_paths
 		# return array with geometric brownian motion paths
 		return gbm_paths
-
-
 
 	def Euler(self):
 		dt: float = self.dt
@@ -129,7 +125,6 @@ class GBM:
 		self.milstein_paths = np.cumprod(steps, axis=0)
 
 		return self.milstein_paths
-
 
 	def show_paths(self, paths=None) -> None:
 		"""Plots the GBM paths"""

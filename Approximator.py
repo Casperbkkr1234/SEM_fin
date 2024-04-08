@@ -1,17 +1,29 @@
+import numpy as np
 import torch.nn as nn
 import torch
 
 torch.set_default_dtype(torch.float64)
-class C_theta():
-	def __init__(self, d, widths):
+
+class C_theta(nn.Module):
+	"""
+	Linear approximation function for Longstaff-Schwartz approximator of payoff
+	"""
+	def __init__(self, d: int, widths: list):
+		super().__init__()
 		self.dimension = d
 		self.widths = widths
 		self.depth= len(widths) + 2
-
+		self.loss = nn.MSELoss
 		self.activation = nn.Tanh
 		self.network = self.Create_network()
+		self.optimizer = torch.optim.SGD(self.parameters(), lr=0.001, momentum=0.9)
 
-	def Create_network(self):
+	def Create_network(self) -> torch.nn.Sequential:
+		"""
+		Creates a linear network with Tanh activation function.
+
+		:return: Linear sequential network
+		"""
 		layers = [nn.Linear(1, self.widths[0]), self.activation()]
 
 		for i in range(1, len(self.widths)):
@@ -26,6 +38,19 @@ class C_theta():
 
 		return nn.Sequential(*layers)
 
-	def Train(self):
+	def forward(self, X_t: np.ndarray):
+		return self.network(X_t)
 
-		return
+	def Train(self, X_t: np.ndarray, target: np.ndarray) -> list:
+		running_loss = []
+		for i in range(X_t.size[0]):
+			self.optimizer.zero_grad()
+			output = self.forward(X_t[i])
+			loss = self.loss(output, target[i])
+			loss.backward()
+			self.optimizer.step()
+
+			running_loss.append(loss.item())
+
+		return running_loss
+

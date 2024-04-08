@@ -15,16 +15,17 @@ n_steps = int(T/dt)
 n_paths = 100
 S0 = 1
 
-
+# Create paths
 gbm = GBM(dt, mu, sigma, n_steps, years=T, n_paths=n_paths, S0=S0)
-gbm.GBM_analytic()
+paths = gbm.GBM_analytic()
 
 # Network parameters
 widths = [51,51]
+dimension = 1
 
-
-network = C_theta(1, widths)
-
+# Create network
+network = C_theta(dimension, widths)
+optimizer =  torch.optim.SGD(network.parameters(), lr=0.001, momentum=0.9)
 
 
 
