@@ -30,6 +30,24 @@ class L_hat():
 		stopping_times[0] = np.mean(g(paths[0,:])) # TODO make this work
 		return stopping_times
 
+	def C(self, paths, n_steps):
+		out = []
+		for t in range(n_steps):
+			a = self.c_thetas[t](paths[t,:])
+			out.append(a)
+		return np.array(out)
+
+	def Tau(self, g, c, paths, n_steps):
+		index = np.arange(0, n_steps, paths.size)
+		A = np.where(g>=c, index, -100)
+
+		return
+
+	def Bound(self, paths):
+
+		return
+
+
 
 
 
