@@ -2,12 +2,12 @@ import torch
 import numpy as np
 
 from Process import GBM
-from Approximator import C_theta
+from Lower_bound import L_hat
 
 torch.set_default_dtype(torch.float64)
 
 # Parameters
-dt = 0.001
+dt = 0.01
 mu = 0.6
 sigma = 0.7
 T = 1
@@ -22,10 +22,14 @@ paths = gbm.GBM_analytic()
 # Network parameters
 widths = [51,51]
 dimension = 1
-
-# Create network
-network = C_theta(dimension, widths)
-optimizer =  torch.optim.SGD(network.parameters(), lr=0.001, momentum=0.9)
+# Create instance of bound class
+bound = L_hat(1, widths, n_steps)
+# Create instance of payoff class
+payoff = 1 # Todo add payoff function/class
+# Calculate stopping times and train networks
+s_times = bound.Stopping_times(paths, n_steps, payoff)
+# Calculate earliest stopping times
+tau = bound.Tau(payoff, paths, n_steps)
 
 
 
