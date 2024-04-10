@@ -6,7 +6,7 @@ from Lower_bound import L_hat
 from Payoff import Payoff
 from Approximator import C_theta
 torch.set_default_dtype(torch.float64)
-
+from Options import Options
 # Parameters
 dt = 0.001
 mu = 0.6
@@ -20,6 +20,10 @@ S0 = 1
 gbm = GBM(dt, mu, sigma, n_steps, years=T, n_paths=n_paths, S0=S0)
 paths = gbm.GBM_analytic()
 #gbm.show_paths()
+a = Options.Vanilla_European(paths[:,:,200], 1.2, 0.05, 1.1)
+b = Options.American(paths, 1.2, 0.05, 1.1)
+b = b.squeeze(1)
+c = b.numpy()
 
 # Network parameters
 widths = [51,51]
