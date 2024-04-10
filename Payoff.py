@@ -1,5 +1,5 @@
 import numpy as np
-
+a=1
 np.random.seed(1)
 
 class Payoff:
