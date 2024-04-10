@@ -3,7 +3,6 @@ import numpy as np
 
 from Process import GBM
 from Lower_bound import L_hat
-from Payoff import Payoff
 from Approximator import C_theta
 torch.set_default_dtype(torch.float64)
 from Options import Options
