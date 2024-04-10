@@ -6,7 +6,7 @@ Created on Mon Apr  8 14:48:12 2024
 """
 import numpy as np
 
-class calloptionpayoff:
+class Options:
     # def __init__(self, payoff_function):
     #     self.payoff_function = payoff_function
 
