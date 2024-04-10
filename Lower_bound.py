@@ -19,25 +19,23 @@ class L_hat():
 		return networks
 
 	def Stopping_times(self, paths, n_steps):#, payoff):
-		stopping_times = np.arange(0, self.n_steps)
+		stopping_times = torch.arange(0, self.n_steps)
 		P = Payoff()
 		g = P.American(paths, 2, 1)
 		g = torch.Tensor(g)
-		paths = torch.Tensor(paths)
-		g = g.unsqueeze(1)
-		paths = paths.unsqueeze(1)
+
 		for i in range(1, n_steps):
 			j = n_steps - i
 			network = self.c_thetas[j]
 
-			network.Train(paths[j,:,:], g[j,:,:])
+			network.Train(paths[:,:,j], g[:,:,j])
 			# TODO make work
-			if g[j,:,:] >= network.forward(paths[j,:,:]):
+			if torch.mean(g[:,:,j]) >= torch.mean(network.forward(paths[:,:,j])):
 				stopping_times[j-1] = j
 			else:
 				stopping_times[j-1] = stopping_times[j]
-
-		stopping_times[0] = np.mean(g(paths[0,:])) # TODO make this work
+		# TODO make this work
+		stopping_times[0] = np.mean(g[:,:,0])
 
 		return stopping_times
 
@@ -51,7 +49,7 @@ class L_hat():
 	def Tau(self, g, paths, n_steps):
 		c = self.C(paths, n_steps)
 		index = np.arange(0, n_steps, paths.size)
-		A = np.where(g>=c, index, -100)
+		A = np.where(g >= c, index, -100)
 
 		return
 

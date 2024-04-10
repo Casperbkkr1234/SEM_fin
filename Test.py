@@ -13,13 +13,13 @@ mu = 0.6
 sigma = 0.7
 T = 1
 n_steps = int(T/dt)
-n_paths = 100
+n_paths = 127
 S0 = 1
 
 # Create paths
 gbm = GBM(dt, mu, sigma, n_steps, years=T, n_paths=n_paths, S0=S0)
 paths = gbm.GBM_analytic()
-
+#gbm.show_paths()
 
 # Network parameters
 widths = [51,51]

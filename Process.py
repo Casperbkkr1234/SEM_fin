@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
+
 
 class GBM:
 	"""
@@ -42,14 +44,16 @@ class GBM:
 		self.milstein_paths = None
 		self.Wiener = None
 
-	def _Random_walk(self, dt: float, n_steps: float, *, n_paths: int = 1, seed=None) -> np.array:
+	def _Random_walk(self, dt: float, n_steps: float, *, n_paths: int = 1, seed=None):# -> np.array:
 		"""Returns Random walk paths"""
 		# set seed for numpy if seed is given
-		self.seed = np.random.seed(seed) if seed is not None else None
+		self.seed = torch.random.manual_seed(seed) if seed is not None else None
 
-		return np.random.normal(0.0,
-		                        np.sqrt(dt),
-		                        [n_paths, n_steps])  # returns numpy array with random samples from N(0,sqrt(dt))
+		#torch.set_default_dtype(torch.float64)
+		means = torch.zeros(n_paths, 1, n_steps-1)
+		stds = torch.full((n_paths, 1, n_steps-1), fill_value=np.sqrt(dt))
+		# returns numpy array with random samples from N(0,sqrt(dt))
+		return torch.normal(mean=means, std=stds)
 
 	def Make_wiener(self) -> np.ndarray:
 		"""Returns Wiener paths"""
@@ -57,9 +61,12 @@ class GBM:
 		dW = self.Random_walk_paths
 
 		# make array with zeros to prepend to all paths
-		zeros = np.zeros((n_paths, 1))
+		zeros = torch.zeros(n_paths, 1,1)
+
 		# prepend the zeros array to cumulative sum of the random walk to get the Wiener paths
-		Wiener_paths = np.concatenate((zeros, dW.cumsum(axis=1)), axis=1)
+		#Wiener_paths = np.concatenate((zeros, dW.cumsum(axis=1)), axis=1)
+		C_sum = torch.cumsum(dW, 2)
+		Wiener_paths = torch.cat((zeros, dW), 2)
 
 		self.Wiener = Wiener_paths
 
@@ -71,72 +78,38 @@ class GBM:
 		mu = self.mu
 		sigma = self.sigma
 		S0 = self.S0
-		dW = self.Make_wiener()[:,:-1]
+		dW = self.Make_wiener()
 
 
-		t = np.arange(0, self.years, self.n_steps)
+		t = torch.arange(start=0, end=self.years , step=dt)
+		t = t.unsqueeze(0)
+		t = t.unsqueeze(1)
+		t = t.repeat(self.n_paths,1,1)
 
 		C = (mu - ((sigma ** 2) / 2)) * t
 		St = C + sigma * dW
 		# take exponent of S(t) and transpose array
-		expSt = (np.exp(St)).T
-		# start gbm at one
-
-		# multiply by S(0)
+		expSt = torch.exp(St)
+		# start gbm at S(0)
 		gbm_paths = S0 * expSt
 
 		self.analytic_paths = gbm_paths
 		# return array with geometric brownian motion paths
 		return gbm_paths
 
-	def Euler(self):
-		dt: float = self.dt
-		mu: float = self.mu
-		sigma: float or np.ndarray = self.sigma
-		S0: float = self.S0
-		dW: np.ndarray = self.Random_walk_paths
-
-		increment = 1 + mu*dt + sigma*dW
-		Y0 = S0 * np.ones(dW.shape[0])
-		steps = np.vstack([Y0, increment.T])
-
-		#save euler paths to object
-		self.euler_paths = np.cumprod(steps, axis=0)
-
-		return self.euler_paths
-
-	def Milstein(self) -> np.ndarray:
-		dt: float = self.dt
-		mu: float = self.mu
-		sigma: float or np.ndarray = self.sigma
-		S0: float = self.S0
-		dW: np.ndarray = self.Random_walk_paths
-
-
-		a = mu * dt
-		b = sigma * dW
-		c = 0.5 * (sigma**2)*(dW**2 - dt)
-		d = 1 + a + b + c
-
-
-		Y0 = S0 * np.ones(dW.shape[0])
-		steps = np.vstack([Y0, d.T])
-
-		self.milstein_paths = np.cumprod(steps, axis=0)
-
-		return self.milstein_paths
 
 	def show_paths(self, paths=None) -> None:
 		"""Plots the GBM paths"""
 		paths = self.analytic_paths if paths is None else paths
-
+		paths = paths.squeeze(1)
+		paths = paths.numpy()
 		#plt.style.use('seaborn')
 		# Define time interval correctly
 		time = np.linspace(0, self.years, self.n_steps)# + 1)
 		# Require numpy array that is the same shape as St
-		tt = np.full(shape=(self.n_paths, self.n_steps), fill_value=time).T
+		tt = np.full(shape=(self.n_paths, self.n_steps), fill_value=time)
 
-		plt.plot(tt, paths)
+		plt.plot(tt.T, paths.T)
 		plt.xlabel("Years $(t)$")
 		plt.ylabel("Stock Price $(S_t)$")
 		plt.title(

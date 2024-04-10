@@ -1,7 +1,7 @@
 import numpy as np
 import torch.nn as nn
 import torch
-
+import matplotlib.pyplot as plt
 torch.set_default_dtype(torch.float64)
 
 class C_theta(nn.Module):
@@ -43,16 +43,17 @@ class C_theta(nn.Module):
 
 	def Train(self, X_t: np.ndarray, target: np.ndarray) -> list:
 		running_loss = []
-		for (i, idx) in enumerate(X_t.T):
+		for (i, idx) in enumerate(X_t):
 			self.optimizer.zero_grad()
 
 			output = self.forward(idx)
-			a = target[:,i]
-			loss = self.loss(output, target[:,i])
+			#a = target[:,i]
+			loss = self.loss(output, target[i,:])
 			loss.backward()
 			self.optimizer.step()
 
 			running_loss.append(loss.item())
+
 
 		return running_loss
 
