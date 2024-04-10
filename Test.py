@@ -8,22 +8,17 @@ from Approximator import C_theta
 torch.set_default_dtype(torch.float64)
 from Options import Options
 # Parameters
-dt = 0.001
+dt = 0.01
 mu = 0.6
 sigma = 0.7
 T = 1
 n_steps = int(T/dt)
-n_paths = 127
+n_paths = 1000
 S0 = 1
 
 # Create paths
 gbm = GBM(dt, mu, sigma, n_steps, years=T, n_paths=n_paths, S0=S0)
 paths = gbm.GBM_analytic()
-#gbm.show_paths()
-a = Options.Vanilla_European(paths[:,:,200], 1.2, 0.05, 1.1)
-b = Options.American(paths, 1.2, 0.05, 1.1)
-b = b.squeeze(1)
-c = b.numpy()
 
 # Network parameters
 widths = [51,51]
@@ -35,9 +30,6 @@ t = torch.Tensor(1)
 x = a.forward(t)
 # Create instance of bound class
 bound = L_hat(1, widths, n_steps)
-# Create instance of payoff class
-#P = Payoff()
-#payoff = P.American(paths, strike, T)
 # Calculate stopping times and train networks
 s_times = bound.Stopping_times(paths, n_steps)#, payoff)
 # Calculate earliest stopping times

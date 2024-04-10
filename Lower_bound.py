@@ -2,7 +2,7 @@ import torch
 
 from Approximator import C_theta
 import numpy as np
-from Payoff import Payoff
+from Options import Options
 
 class L_hat():
 	def __init__(self, dimension, widths, n_steps):
@@ -20,24 +20,30 @@ class L_hat():
 
 	def Stopping_times(self, paths, n_steps):#, payoff):
 		stopping_times = torch.arange(0, self.n_steps)
-		P = Payoff()
-		g = P.American(paths, 2, 1)
-		g = torch.Tensor(g)
-
-		for i in range(1, n_steps):
+		stopping_times = stopping_times.repeat(paths.shape[0], 1, 1)
+		g = Options.American(paths, 1.2, 0.05)
+		for i in range(2, n_steps+1):
+			print(i)
 			j = n_steps - i
 			network = self.c_thetas[j]
+			stop_time = stopping_times[:,:,j+1]
+			g = g.squeeze(1)
+			g_s = torch.take_along_dim(g, stop_time, 1)
 
-			network.Train(paths[:,:,j], g[:,:,j])
-			# TODO make work
-			if torch.mean(g[:,:,j]) >= torch.mean(network.forward(paths[:,:,j])):
-				stopping_times[j-1] = j
-			else:
-				stopping_times[j-1] = stopping_times[j]
-		# TODO make this work
-		stopping_times[0] = np.mean(g[:,:,0])
+			# Train c function on option value at stopping time n+1
+			x_n = paths[:,:,j+1]
+			network.Train(x_n, g_s)
+			# Set stopping time n equal n if value at n greater than c at n
+			forward = network.forward(paths[:,:,j+1])
 
-		return stopping_times
+			stopping_times[:,:,j] = torch.where(g_s >= forward, j, stopping_times[:,:,j+1])
+
+		s1 = stopping_times[:, :, 0]
+
+		s2 = s1.to(torch.float64)
+		theta_0 = s2.mean()
+		# TODO return all c functions including c_theta_0
+		return
 
 	def C(self, paths, n_steps):
 		out = []
