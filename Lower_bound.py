@@ -22,6 +22,7 @@ class L_hat():
 		stopping_times = torch.arange(0, self.n_steps)
 		stopping_times = stopping_times.repeat(paths.shape[0], 1, 1)
 		g = Options.American(paths, 1.2, 0.05)
+
 		for i in range(2, n_steps+1):
 			print(i)
 			j = n_steps - i
@@ -43,25 +44,38 @@ class L_hat():
 		s2 = s1.to(torch.float64)
 		theta_0 = s2.mean()
 		# TODO return all c functions including c_theta_0
-		return
-
-	def C(self, paths, n_steps):
-		out = []
-		for t in range(n_steps):
-			a = self.c_thetas[t](paths[t,:])
-			out.append(a)
-		return np.array(out)
-
-	def Tau(self, g, paths, n_steps):
-		c = self.C(paths, n_steps)
-		index = np.arange(0, n_steps, paths.size)
-		A = np.where(g >= c, index, -100)
+		self.c_thetas[0] = theta_0
 
 		return
 
-	def Bound(self, paths):
 
-		return
+
+	def Tau(self, paths, n_steps):
+		stopping_times = torch.arange(0, self.n_steps)
+		stopping_times = stopping_times.repeat(paths.shape[0], 1, 1)
+		g = Options.American(paths, 1.2, 0.05)
+		networks = self.c_thetas
+		for i in range(n_steps):
+			net = networks[i]
+			if i != 0:
+				forw = net.forward(paths[:,:,i])
+				stopping_times[:,:,i] = torch.where(g[:,:,i] >= forw, i, 1000) #TODO fix 1000
+			else:
+				stopping_times[:,:,0] = torch.where(g[:,:,i] >= networks[0], i, 1000) #TODO fix 1000
+
+
+		s1 = stopping_times.squeeze(1)
+		s2 = s1.numpy()
+
+		min = torch.min(stopping_times, dim=2).indices
+		return min
+
+	def Bound(self, paths, min):
+		Options.American(paths, 1.2, 0.05)
+		paths = paths.squeeze(1)
+		g_tau = torch.take_along_dim(paths, min, 1)
+		mean = torch.mean(g_tau)
+		return mean
 
 
 

@@ -44,7 +44,7 @@ class GBM:
 		self.milstein_paths = None
 		self.Wiener = None
 
-	def _Random_walk(self, dt: float, n_steps: float, *, n_paths: int = 1, seed=None):# -> np.array:
+	def _Random_walk(self, dt: float, n_steps: float, *, n_paths: int = 1, seed=None) ->np.ndarray:
 		"""Returns Random walk paths"""
 		# set seed for numpy if seed is given
 		self.seed = torch.random.manual_seed(seed) if seed is not None else None
@@ -55,7 +55,7 @@ class GBM:
 		# returns numpy array with random samples from N(0,sqrt(dt))
 		return torch.normal(mean=means, std=stds)
 
-	def Make_wiener(self) -> np.ndarray:
+	def Make_wiener(self) -> torch.tensor:
 		"""Returns Wiener paths"""
 		n_paths = self.n_paths
 		dW = self.Random_walk_paths
@@ -72,7 +72,7 @@ class GBM:
 
 		return Wiener_paths
 
-	def GBM_analytic(self) -> np.ndarray:
+	def GBM_analytic(self) -> torch.tensor:
 		"""Returns Geometric brownian motion paths"""
 		dt = self.dt
 		mu = self.mu
