@@ -5,23 +5,24 @@ import numpy as np
 from Options import Options
 
 class L_hat():
-	def __init__(self, dimension, widths, n_steps):
+	def __init__(self, dimension: int, widths: list, n_steps: int):
 		self.dimension = dimension
 		self.widths = widths
 		self.n_steps = n_steps
 		self.c_thetas = self.Make_networks(n_steps)
 
-	def Make_networks(self, n_steps):
+	def Make_networks(self, n_steps: int) -> list:
 		networks = []
 		for _ in range(n_steps):
 			c_theta_n = C_theta(self.dimension, self.widths)
 			networks.append(c_theta_n)
 		return networks
 
-	def Stopping_times(self, paths, n_steps):#, payoff):
+	def Stopping_times(self, paths: torch.tensor,
+	                         n_steps: int,
+	                         g: torch.Tensor):
 		stopping_times = torch.arange(0, self.n_steps)
 		stopping_times = stopping_times.repeat(paths.shape[0], 1, 1)
-		g = Options.American(paths, 1.2, 0.05)
 
 		for i in range(2, n_steps+1):
 			print(i)
@@ -50,10 +51,11 @@ class L_hat():
 
 
 
-	def Tau(self, paths, n_steps):
+	def Tau(self, paths: torch.tensor,
+	              n_steps: int,
+	              g: torch.Tensor):
 		stopping_times = torch.arange(0, self.n_steps)
 		stopping_times = stopping_times.repeat(paths.shape[0], 1, 1)
-		g = Options.American(paths, 1.2, 0.05)
 		networks = self.c_thetas
 		for i in range(n_steps):
 			net = networks[i]
@@ -68,13 +70,18 @@ class L_hat():
 		s2 = s1.numpy()
 
 		min = torch.min(stopping_times, dim=2).indices
-		return min
 
-	def Bound(self, paths, min):
-		Options.American(paths, 1.2, 0.05)
+		min2 = torch.min(min, dim=0).values.item()
+		out = torch.full(min.shape, min2)
+		return out
+
+	def Bound(self, paths: torch.tensor,
+	                min: torch.tensor):
+
 		paths = paths.squeeze(1)
 		g_tau = torch.take_along_dim(paths, min, 1)
 		mean = torch.mean(g_tau)
+
 		return mean
 
 

@@ -81,15 +81,16 @@ class GBM:
 		dW = self.Make_wiener()
 
 
-		t = torch.arange(start=0, end=self.years , step=dt)
-		t = t.unsqueeze(0)
-		t = t.unsqueeze(1)
-		t = t.repeat(self.n_paths,1,1)
+		t1 = torch.arange(start=0, end=self.years , step=dt)
+		t2 = t1.unsqueeze(0)
+		t3 = t2.unsqueeze(1)
+		t4 = t3.repeat(self.n_paths,1,1)
 
-		C = (mu - ((sigma ** 2) / 2)) * t
+		C = (mu - ((sigma ** 2) / 2)) * t4
 		St = C + sigma * dW
 		# take exponent of S(t) and transpose array
 		expSt = torch.exp(St)
+
 		# start gbm at S(0)
 		gbm_paths = S0 * expSt
 

@@ -38,22 +38,23 @@ class C_theta(nn.Module):
 
 		return nn.Sequential(*layers)
 
-	def forward(self, X_t: np.ndarray):
+	def forward(self, X_t: torch.Tensor) -> torch.Tensor:
+		"""
+		Perform forward pass of network
+		"""
 		return self.network(X_t)
 
-	def Train(self, X_t: np.ndarray, target: np.ndarray) -> list:
+	def Train(self, X_t: torch.Tensor, target: torch.Tensor) -> list:
 		running_loss = []
 		for (i, idx) in enumerate(X_t):
 			self.optimizer.zero_grad()
 
 			output = self.forward(idx)
-			#a = target[:,i]
 			loss = self.loss(output, target[i,:])
 			loss.backward()
 			self.optimizer.step()
 
 			running_loss.append(loss.item())
-
 
 		return running_loss
 
