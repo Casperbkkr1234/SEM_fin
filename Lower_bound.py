@@ -34,7 +34,7 @@ class L_hat():
 
 			# Train c function on option value at stopping time n+1
 			x_n = paths[:,:,j+1]
-			network.Train(x_n, g_s)
+			network.Train_batch(x_n, g_s)
 			# Set stopping time n equal n if value at n greater than c at n
 			forward = network.forward(paths[:,:,j+1])
 
