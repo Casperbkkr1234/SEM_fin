@@ -12,7 +12,7 @@ mu = 0.05
 sigma = 0.3
 T = 1
 n_steps = int(T/dt)
-n_paths = 100
+n_paths = 1000
 S0 = 1
 
 # Create paths

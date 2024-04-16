@@ -58,3 +58,21 @@ class C_theta(nn.Module):
 
 		return running_loss
 
+
+	def Train_batch(self, X_t: torch.Tensor, target: torch.Tensor, batch_size=10) -> list:
+		running_loss = []
+		n_samples = X_t.shape[0]
+		batches = int(n_samples/batch_size)
+
+		for i in range(1,batches):
+			batch = X_t[(i-1)*batch_size:i*batch_size,:]
+			self.optimizer.zero_grad()
+
+			output = self.forward(batch)
+			loss = self.loss(output, target[(i-1)*batch_size:i*batch_size, :])
+			loss.backward()
+			self.optimizer.step()
+
+			running_loss.append(loss.item())
+
+		return running_loss
