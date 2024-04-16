@@ -4,7 +4,8 @@ from Process import GBM
 from Lower_bound import L_hat
 from Approximator import C_theta
 from Options import Options
-
+import numpy as np
+np.random.seed(1)
 torch.set_default_dtype(torch.float64)
 # Parameters
 dt = 0.01
