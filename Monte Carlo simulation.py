@@ -30,10 +30,11 @@ mu=0.2
 sigma = 0.3
 T = 1
 n_steps = 100
-n_paths = 1e7
+n_paths = 5
 S0 = 100
-K = 70
-
+K = 100
+N_exercises = 10
+exercise_dates = [i*T/N_exercises for i in range(1,N_exercises+1)]
 
 def black_scholes_call(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
@@ -77,39 +78,42 @@ def Final_price_GBM(NoOfPaths,NoOfSteps,T,r,sigma,S0):
 
 Sample_size = np.array([1e3,1e4,1e5,1e6,1e7],dtype=int)
 K = np.array([70,100,130])
-running_times = np.zeros([len(K),len(Sample_size)])
-price = np.zeros([len(K),len(Sample_size)])
-error = np.zeros([len(K),len(Sample_size)])
-iid_runs = 100
-
-for idx,s in enumerate(Sample_size):
-    print(s)
-    for j in range(len(K)):
-        times = np.zeros(iid_runs)
-        errors = np.zeros(iid_runs)
-        payoffs = np.zeros(iid_runs)
-        for _ in range(iid_runs):
-            t = time.time()
-            k = K[j]
-            spot_price = Final_price_GBM(s, n_steps, T, r, sigma, S0)
-            payoff = np.mean(Options.Vanilla_European(spot_price, k, r, T))
-            payoffs[_] = payoff
-            errors[_] = abs(black_scholes_call(S0, k, T, r, sigma)-payoff)
-            et = time.time()
-            times[_] = round(et-t,5)
-        running_times[j,idx] = np.mean(times)
-        error[j,idx] = np.mean(errors)
-        price[j,idx] = np.mean(payoffs)
-
-
-names=["running_times", "price", "error"]
-data = [running_times,price,error]
-for k in range(3):
-    df = pd.DataFrame(data[k],columns=Sample_size, index=K)
-    name = names[k]
-    df.to_excel(f"Vanilla_call_{name}.xlsx")
-
-
+def MC_call():
+    running_times = np.zeros([len(K),len(Sample_size)])
+    price = np.zeros([len(K),len(Sample_size)])
+    error = np.zeros([len(K),len(Sample_size)])
+    iid_runs = 100
+    
+    for idx,s in enumerate(Sample_size):
+        print(s)
+        for j in range(len(K)):
+            times = np.zeros(iid_runs)
+            errors = np.zeros(iid_runs)
+            payoffs = np.zeros(iid_runs)
+            for _ in range(iid_runs):
+                t = time.time()
+                k = K[j]
+                spot_price = Final_price_GBM(s, n_steps, T, r, sigma, S0)
+                payoff = np.mean(Options.Vanilla_European(spot_price, k, r, T))
+                payoffs[_] = payoff
+                errors[_] = abs(black_scholes_call(S0, k, T, r, sigma)-payoff)
+                et = time.time()
+                times[_] = round(et-t,5)
+            running_times[j,idx] = np.mean(times)
+            error[j,idx] = np.mean(errors)
+            price[j,idx] = np.mean(payoffs)
+    
+    
+    names=["running_times", "price", "error"]
+    data = [running_times,price,error]
+    for k in range(len(data)):
+        df = pd.DataFrame(data[k],columns=Sample_size, index=K)
+        name = names[k]
+        df.to_excel(f"Vanilla_call_{name}.xlsx")
+    
+S = GeneratePathsGBM(n_paths, n_steps, T, r, sigma, S0)
+BM_price = Options.Ber_max(S, 100, r, T, exercise_dates)
+print("BM price:",BM_price)
 
 # Record the end time
 end_time = time.time()

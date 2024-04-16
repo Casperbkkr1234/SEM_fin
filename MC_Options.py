@@ -34,7 +34,7 @@ class Options:
     
     #discounted payoff Asian option
     @staticmethod
-    def Asian(self,S,strike,r,T):
+    def Asian(S,strike,r,T):
         p=len(S[0,:])
         V = np.zeros([len(S[:,0]),p])
         for i in range(1,p):
@@ -44,10 +44,28 @@ class Options:
         
     #discounted payoff bermuda max call option not yet correct
     @staticmethod
-    def Ber_max(self,S,strike_price,r,T):
+    
+    def Ber_max(S,strike_price,r,T,exercise_dates):
         p=len(S[0,:])
-        V = np.zeros(p)
-        for i in range(1,p):
-            discount = i/p
-            V[i] = np.exp(-discount*r)*np.maximum(np.max(S[:,i])-strike_price,0)
-        return V
+        if len(exercise_dates) > p:
+            raise ValueError("More exercise dates than time points")
+        
+        
+        
+        dt=T/(p-1)
+        payoff = np.maximum(S-strike_price,0)
+
+        
+        # Discounted payoff at each exercise date
+        discount_factors = np.exp(-r * np.array(exercise_dates))
+        exercise_steps = [int(date / dt) for date in exercise_dates]  # Map exercise dates to time steps
+
+        discounted_payoff = payoff[:, exercise_steps] * discount_factors
+        print(discounted_payoff,len(discounted_payoff[0]))
+        print(np.max(discounted_payoff, axis=1))
+        option_price = np.mean(np.max(discounted_payoff, axis=1))
+
+        return option_price
+        
+        
+        
