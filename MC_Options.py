@@ -46,26 +46,25 @@ class Options:
     @staticmethod
     
     def Ber_max(S,strike_price,r,T,exercise_dates):
-        p=len(S[0,:])
+        #S should be 3 dimensional.: S1 = np.zeros([NoOfPaths,len(X_0),NoOfSteps+1])
+        p=len(S[0,0,:])
         if len(exercise_dates) > p:
             raise ValueError("More exercise dates than time points")
         
-        
-        
-        dt=T/(p-1)
-        payoff = np.maximum(S-strike_price,0)
+        prices = np.zeros(len(S[:,0,0]))
+        for n in range(len(S[:,0,0])):
+            dt=T/(p-1)
+            payoff=np.maximum(S[n,:,:]-strike_price,0)
+            # Discounted payoff at each exercise date
+            discount_factors = np.exp(-r * np.array(exercise_dates))
+            exercise_steps = [int(date / dt) for date in exercise_dates]  # Map exercise dates to time steps
+    
+            discounted_payoff = payoff[:, exercise_steps] * discount_factors
+            # print(discounted_payoff,len(discounted_payoff[0]))
+            # print(np.max(discounted_payoff, axis=1))
+            prices[n] = np.mean(np.max(discounted_payoff, axis=1))
 
-        
-        # Discounted payoff at each exercise date
-        discount_factors = np.exp(-r * np.array(exercise_dates))
-        exercise_steps = [int(date / dt) for date in exercise_dates]  # Map exercise dates to time steps
-
-        discounted_payoff = payoff[:, exercise_steps] * discount_factors
-        print(discounted_payoff,len(discounted_payoff[0]))
-        print(np.max(discounted_payoff, axis=1))
-        option_price = np.mean(np.max(discounted_payoff, axis=1))
-
-        return option_price
+        return np.mean(prices)
         
         
         

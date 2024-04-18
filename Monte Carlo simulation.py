@@ -27,13 +27,14 @@ start_time = time.time()
 
 r = 0.05
 mu=0.2
-sigma = 0.3
-T = 1
+sigma = 0.2
+T = 3
 n_steps = 100
-n_paths = 5
+n_paths = 10000
 S0 = 100
 K = 100
-N_exercises = 10
+delta = 0.1
+N_exercises = 9
 exercise_dates = [i*T/N_exercises for i in range(1,N_exercises+1)]
 
 def black_scholes_call(S, K, T, r, sigma):
@@ -42,26 +43,31 @@ def black_scholes_call(S, K, T, r, sigma):
     call_price = S * stats.norm.cdf(d1) - K * np.exp(-r * T) * stats.norm.cdf(d2)
     return call_price
 
-def GeneratePathsGBM(NoOfPaths,NoOfSteps,T,r,sigma,X_0):    
-    Z = np.random.normal(0.0,1.0,[NoOfPaths,NoOfSteps])
-    X = np.zeros([NoOfPaths, NoOfSteps+1])
-    S1 = np.zeros([NoOfPaths, NoOfSteps+1])
+def GeneratePathsGBM(NoOfPaths,NoOfSteps,T,r,delta,sigma,X_0):    
+    S1 = np.zeros([NoOfPaths,len(X_0),NoOfSteps+1])
+    
+    for n in range(NoOfPaths):
+        np.random.seed(n)
+        Z = np.random.normal(0.0,1.0,[len(X_0),NoOfSteps])
+        X = np.zeros([len(X_0), NoOfSteps+1])
 
-    X[:,0] = np.log(X_0)
 
-    dt = T / float(NoOfSteps)
-    for i in range(0,NoOfSteps):
+        X[:,0] = np.log(X_0)
 
-        # Making sure that samples from a normal have mean 0 and variance 1
+        dt = T / float(NoOfSteps)
+        for i in range(0,NoOfSteps):
+    
+           # Making sure that samples from a normal have mean 0 and variance 1
+    
+           if NoOfPaths > 1:
+               Z[:,i] = (Z[:,i] - np.mean(Z[:,i])) / np.std(Z[:,i])
+    
+           X[:,i+1] = X[:,i] + (r-delta-(sigma**2 )/2) * dt + sigma *np.power(dt, 0.5)*Z[:,i]
 
-        if NoOfPaths > 1:
-            Z[:,i] = (Z[:,i] - np.mean(Z[:,i])) / np.std(Z[:,i])
+     
+        # Compute exponent of ABM
 
-        X[:,i+1] = X[:,i] + (r-(sigma**2 )/2) * dt + sigma *np.power(dt, 0.5)*Z[:,i]
-
-    # Compute exponent of ABM
-
-    S1 = np.exp(X)
+        S1[n,:,:] = np.array(np.exp(X))
 
     return S1
 
@@ -111,7 +117,9 @@ def MC_call():
         name = names[k]
         df.to_excel(f"Vanilla_call_{name}.xlsx")
     
-S = GeneratePathsGBM(n_paths, n_steps, T, r, sigma, S0)
+S_0 = [100 for k in range(5)]
+S = GeneratePathsGBM(n_paths, n_steps, T, r, delta,sigma, S_0)
+print(S)
 BM_price = Options.Ber_max(S, 100, r, T, exercise_dates)
 print("BM price:",BM_price)
 
