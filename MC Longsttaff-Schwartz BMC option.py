@@ -7,11 +7,8 @@ Created on Tue Apr 16 12:37:53 2024
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import torch
-from Process import GBM
 from sklearn.linear_model import LinearRegression
 from numpy.polynomial import Polynomial
-from MC_Options import Options
 import scipy.stats as stats
 import scipy
 import time
@@ -37,7 +34,7 @@ n_paths = 5
 # S0 = 100
 # K = 100
 delta = 0
-N_exercises = 5
+N_exercises = 4
 exercise_dates = [i*T/N_exercises for i in range(1,N_exercises+1)]
 
 def GeneratePathsGBM(NoOfPaths,NoOfSteps,T,r,delta,sigma,X_0):    
@@ -98,6 +95,7 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
     #i th asset in k th simulation is S[k,i,:]
     #value at time t of ith asset in kth simulation is S[k,i,t]
     dt = exercise_dates[-1]/len(S[0,0,:])
+    print("dt",dt)
     cash_flows = np.zeros([len(S[:,0,0]),len(S[0,0,:])])
     # print(cash_flows,len(cash_flows))
 
@@ -148,14 +146,14 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
                 # X3=np.exp(-X1/2)*(1-2*X1+(X1**2)/2)
                 # print(X)
                 X2 = X*X
-
+                ones = np.ones_like(X)
                 
     
                 print("discount time",exercise_dates[i+1]-exercise_dates[i])
                 #Initialize dependent variable the discounted cashflow from next exercise date to exercise date k
                 Y=np.exp(-r*(exercise_dates[i+1]-exercise_dates[i]))*cash_flows[in_the_money,i+1]
                 print("X",X,"X^2",X*X,"Y",Y)
-                Xs = np.column_stack([X,X2])
+                Xs = np.column_stack([ones,X,X2])
                 #Compute coefficients using linear regression
                 # fitted = Polynomial.fit(X,Y,10)
                 # conditional_exp= fitted(X)
@@ -176,7 +174,7 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
                 print("cont",continuation)
                 print("pre cont cf",cash_flows[:,i])
                 # print("which 0",continuation > cash_flows[:,i])
-                #If continuation value > than immidiate exercise then not exercise hence cashflow 0
+                #If continuation value > immidiate exercise then not exercise hence cashflow 0
                 cash_flows[:,i] = np.where(continuation> cash_flows[:,i], 0, cash_flows[:,i])
                 print("cf",cash_flows)
                 #Decide whether we exercised or not
