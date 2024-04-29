@@ -23,21 +23,24 @@ np.random.seed(1)
 # Record the start time
 start_time = time.time()
 
-# Parameters
+# Define the parameters
 
 r = 0.05
-# mu=0.2
 sigma = 0.2
 T = 1
 n_steps = 100
 n_paths = 5
-# S0 = 100
-# K = 100
 delta = 0
+#Select amount of exercise dates, assumed to be equidistant until T, t=0 is not included as exercise date.
 N_exercises = 4
 exercise_dates = [i*T/N_exercises for i in range(1,N_exercises+1)]
 
 def GeneratePathsGBM(NoOfPaths,NoOfSteps,T,r,delta,sigma,X_0):    
+    #Define an array for len(X_0) dimensional asset process.
+    #k th simulation is = S[k,:,:], which contains len(X_0) assets and has NoOfSteps timesteps. The number of
+    #simulations is running from 0 to NoOfPaths, ie 0<k<NoOfPaths
+    #i th asset in k th simulation is S[k,i,:]
+    #value at time t of ith asset in kth simulation is S[k,i,t]
     S1 = np.zeros([NoOfPaths,len(X_0),NoOfSteps+1])
     print(S1)
     for n in range(NoOfPaths):
@@ -69,7 +72,7 @@ def GeneratePathsGBM(NoOfPaths,NoOfSteps,T,r,delta,sigma,X_0):
         # plt.plot(np.exp(X[0]))
     return S1
 
-
+#use this function to verify simulated prices (1 dimensional only)
 def black_scholes_call(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
@@ -78,7 +81,10 @@ def black_scholes_call(S, K, T, r, sigma):
 # Sample_size = np.array([1e3,1e4,1e5,1e6,1e7],dtype=int)
 # K = np.array([70,100,130])
 
+
+#define amount of assets to simulate
 n_assets =1
+#assume all have same initial stock price.
 S_0 = 100
 S_0 = [S_0 for k in range(n_assets)]
 # print(S_0)
@@ -91,7 +97,7 @@ S = GeneratePathsGBM(n_paths, n_steps, T, r, delta,sigma, S_0)
 K=100
 def longstaff_schwartz(S, strike, r,exercise_dates):
     #LS Algo for Bermuda Max call option
-    #Portfolio simulations = S[:,0,0]
+    #k th simulation is = S[k,:,:]
     #i th asset in k th simulation is S[k,i,:]
     #value at time t of ith asset in kth simulation is S[k,i,t]
     dt = exercise_dates[-1]/len(S[0,0,:])
@@ -148,7 +154,7 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
                 X2 = X*X
                 ones = np.ones_like(X)
                 
-    
+                
                 print("discount time",exercise_dates[i+1]-exercise_dates[i])
                 #Initialize dependent variable the discounted cashflow from next exercise date to exercise date k
                 Y=np.exp(-r*(exercise_dates[i+1]-exercise_dates[i]))*cash_flows[in_the_money,i+1]
@@ -169,12 +175,13 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
                 print("ce",conditional_exp)
                 #Continuation array to decide whether to exercise or not
                 continuation = np.zeros_like(cash_flows[:,i])
+                #paths that are in the money have a computed conditional expectation
                 continuation[in_the_money] = conditional_exp
                 # continuation = conditional_exp
                 print("cont",continuation)
                 print("pre cont cf",cash_flows[:,i])
                 # print("which 0",continuation > cash_flows[:,i])
-                #If continuation value > immidiate exercise then not exercise hence cashflow 0
+                #If continuation value > immidiate exercise then not exercise hence we set cashflow to 0
                 cash_flows[:,i] = np.where(continuation> cash_flows[:,i], 0, cash_flows[:,i])
                 print("cf",cash_flows)
                 #Decide whether we exercised or not
