@@ -10,6 +10,7 @@ class GBM:
 	def __init__(self, dt: float,
 	             mu: float,
 	             sigma: float,
+	             delta: float,
 	             n_steps: int,
 	             *, d_sigma: np.ndarray = None,
 	             years: int = 1,
@@ -31,6 +32,7 @@ class GBM:
 		self.dt = dt
 		self.mu = mu
 		self.sigma = sigma
+		self.delta = delta
 		self.n_steps = n_steps
 		self.n_paths = n_paths
 		self.seed = seed
@@ -61,12 +63,11 @@ class GBM:
 		dW = self.Random_walk_paths
 
 		# make array with zeros to prepend to all paths
-		zeros = torch.zeros(n_paths, 1,1)
+		zeros = torch.zeros(n_paths, 1, 1)
 
 		# prepend the zeros array to cumulative sum of the random walk to get the Wiener paths
-		#Wiener_paths = np.concatenate((zeros, dW.cumsum(axis=1)), axis=1)
 		C_sum = torch.cumsum(dW, 2)
-		Wiener_paths = torch.cat((zeros, dW), 2)
+		Wiener_paths = torch.cat((zeros, C_sum), 2)
 
 		self.Wiener = Wiener_paths
 
@@ -79,14 +80,14 @@ class GBM:
 		sigma = self.sigma
 		S0 = self.S0
 		dW = self.Make_wiener()
-
+		delta = self.delta
 
 		t1 = torch.arange(start=0, end=self.years , step=dt)
 		t2 = t1.unsqueeze(0)
 		t3 = t2.unsqueeze(1)
-		t4 = t3.repeat(self.n_paths,1,1)
+		t4 = t3.repeat(self.n_paths, 1, 1)
 
-		C = (mu - ((sigma ** 2) / 2)) * t4
+		C = (mu - delta - ((sigma ** 2) / 2)) * t4
 		St = C + sigma * dW
 		# take exponent of S(t) and transpose array
 		expSt = torch.exp(St)
@@ -103,12 +104,12 @@ class GBM:
 		"""Plots the GBM paths"""
 		paths = self.analytic_paths if paths is None else paths
 		paths = paths.squeeze(1)
-		paths = paths.numpy()
+		paths = paths.detach().numpy()
 		#plt.style.use('seaborn')
 		# Define time interval correctly
 		time = np.linspace(0, self.years, self.n_steps)# + 1)
 		# Require numpy array that is the same shape as St
-		tt = np.full(shape=(self.n_paths, self.n_steps), fill_value=time)
+		tt = np.full(shape=paths.shape, fill_value=time)
 
 		plt.plot(tt.T, paths.T)
 		plt.xlabel("Years $(t)$")

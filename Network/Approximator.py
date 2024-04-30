@@ -2,21 +2,28 @@ import numpy as np
 import torch.nn as nn
 import torch
 import matplotlib.pyplot as plt
+
+
+
 torch.set_default_dtype(torch.float64)
+
 
 class C_theta(nn.Module):
 	"""
 	Linear approximation function for Longstaff-Schwartz approximator of payoff
 	"""
+
+
 	def __init__(self, d: int, widths: list):
 		super().__init__()
 		self.dimension = d
 		self.widths = widths
-		self.depth= len(widths) + 2
+		self.depth = len(widths) + 2
 		self.loss = nn.MSELoss()
 		self.activation = nn.Tanh
 		self.network = self.Create_network()
 		self.optimizer = torch.optim.SGD(self.parameters(), lr=0.001, momentum=0.9)
+
 
 	def Create_network(self) -> torch.nn.Sequential:
 		"""
@@ -38,11 +45,13 @@ class C_theta(nn.Module):
 
 		return nn.Sequential(*layers)
 
+
 	def forward(self, X_t: torch.Tensor) -> torch.Tensor:
 		"""
 		Perform forward pass of network
 		"""
 		return self.network(X_t)
+
 
 	def Train(self, X_t: torch.Tensor, target: torch.Tensor) -> list:
 		running_loss = []
@@ -50,7 +59,7 @@ class C_theta(nn.Module):
 			self.optimizer.zero_grad()
 
 			output = self.forward(idx)
-			loss = self.loss(output, target[i,:])
+			loss = self.loss(output, target[i, :])
 			loss.backward()
 			self.optimizer.step()
 
@@ -62,17 +71,17 @@ class C_theta(nn.Module):
 	def Train_batch(self, X_t: torch.Tensor, target: torch.Tensor, batch_size=10) -> list:
 		running_loss = []
 		n_samples = X_t.shape[0]
-		batches = int(n_samples/batch_size)
+		batches = int(n_samples / batch_size)
+		for _ in range(10):
+			for i in range(1, batches):
+				batch = X_t[(i - 1) * batch_size:i * batch_size, :]
+				self.optimizer.zero_grad()
 
-		for i in range(1,batches):
-			batch = X_t[(i-1)*batch_size:i*batch_size,:]
-			self.optimizer.zero_grad()
+				output = self.forward(batch)
+				loss = self.loss(output, target[(i - 1) * batch_size:i * batch_size, :])
+				loss.backward()
+				self.optimizer.step()
 
-			output = self.forward(batch)
-			loss = self.loss(output, target[(i-1)*batch_size:i*batch_size, :])
-			loss.backward()
-			self.optimizer.step()
-
-			running_loss.append(loss.item())
+				running_loss.append(loss.item())
 
 		return running_loss
