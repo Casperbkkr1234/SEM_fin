@@ -29,7 +29,7 @@ r = 0.05
 sigma = 0.2
 T = 3
 NoOfSteps = 100
-NoOfPaths = 100000
+NoOfPaths = 10000
 n_assets =5 #Setting this to 1 results in regular one dimensional options
 #assume all have same initial stock price.
 S_0 = 100
@@ -37,7 +37,7 @@ S_0 = [S_0 for k in range(n_assets)]
 K = 100
 delta = 0.1#dividend parameter
 N_exercises = 9
-N_simulations = 25
+N_simulations = 10
 confidence_level = 0.95
 exercise_dates = [np.round(i*T/N_exercises,2) for i in range(1,N_exercises+1)]
 
