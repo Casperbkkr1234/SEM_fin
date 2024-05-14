@@ -25,11 +25,11 @@ start_time = time.time()
 
 # Define the parameters
 
-r = 0.05
+r = 0.0
 sigma = 0.2
 T = 1
 n_steps = 100
-n_paths = 5
+n_paths = 5000
 delta = 0
 #Select amount of exercise dates, assumed to be equidistant until T, t=0 is not included as exercise date.
 N_exercises = 4
@@ -189,7 +189,7 @@ def longstaff_schwartz(S, strike, r,exercise_dates):
             print("ee",exercised_early)
             #If we exercise at time t then all future cashflows are zero since option ceases to exist
             cash_flows[exercised_early,i+1:] =0
-            # discounted_cash_flows[exercised_early,i+1:]=0
+            discounted_cash_flows[exercised_early,i+1:]=0
             print("cf",cash_flows)
             # print(k)
             #Discount the cashflow to t_0

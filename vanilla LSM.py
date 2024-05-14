@@ -28,11 +28,11 @@ r = 0.06
 sigma = 0.2
 T = 1
 NoOfSteps = 100
-NoOfPaths = 20
-S_0 = 1
-K = 1.1
+NoOfPaths = 10000
+S_0 = 100
+K = 100
 delta = 0
-N_exercises = 4
+N_exercises = 50
 exercise_dates = [i*T/N_exercises for i in range(1,N_exercises+1)]
 
 
