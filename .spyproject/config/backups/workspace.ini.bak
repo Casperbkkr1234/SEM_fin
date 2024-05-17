@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['Longstaff-Schwartz vanilla option.py', 'MC Longsttaff-Schwartz BMC option.py', 'vanilla LSM.py', 'vanilla put LSM.py', 'vanilla LSM v2.py', 'MC LSM BMC.py', 'MC LSM BMC new paths.py']
+recent_files = ['manual regression.py', 'Monte Carlo Longstaff-Schwartz BMC.py', 'Old codes\\Longstaff-Schwartz vanilla option.py', 'Old codes\\vanilla put LSM unbiased.py']
 
 [main]
 version = 0.2.0
