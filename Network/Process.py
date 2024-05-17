@@ -88,7 +88,7 @@ class GBM:
 		t4 = t3.repeat(self.n_paths, 1, 1)
 
 		C = (mu - delta - ((sigma ** 2) / 2)) * t4
-		St = C + sigma * dW
+		St = C + sigma*dW
 		# take exponent of S(t) and transpose array
 		expSt = torch.exp(St)
 

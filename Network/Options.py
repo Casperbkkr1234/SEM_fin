@@ -10,7 +10,6 @@ class Options:
 	                            r: float,
 	                            discount: float) -> torch.Tensor:
 		zeros = torch.zeros(spot_price.shape)
-		m = torch.maximum(spot_price - strike_price,                                          zeros)
 		return np.exp(-discount * r) * torch.maximum(spot_price - strike_price,
 		                                             zeros)  # Call option payoff function
 
@@ -26,9 +25,9 @@ class Options:
 	@staticmethod
 	def American(spot_price, strike_price, r) -> torch.Tensor:
 
-		D1 = torch.arange(0, spot_price.shape[-1])  # 1,2,3,4,5..
-		D2 = D1.repeat(spot_price.shape[0], 1, 1)  # stacks
-		discount = D2 / spot_price.shape[-1]
+		D1 = np.linspace(0, 3, spot_price.shape[-1])
+		D2 = torch.Tensor(D1)
+		discount = D2.repeat(spot_price.shape[0], 1, 1)
 
 		return Options.__Vanilla_European_stat(Options, spot_price, strike_price, r, discount)
 
@@ -49,27 +48,22 @@ class Options:
 		return out
 
 
-	def __Ber_max_t(self, spot_price_t, strike_price, r):
-
-		return
-
-
 	# discounted payoff bermuda max call option
 	@staticmethod
-	def Ber_max(spot_price, strike_price, r, ex_times, dt):
-		D1 = torch.arange(0, spot_price.shape[-1])
-		D2 = D1.repeat(spot_price.shape[0], 1, 1)
-		discount = D2 / spot_price.shape[-1]
-		exercise_steps = [int(date / dt) for date in ex_times]
+	def Ber_max(spot_price, strike_price, r):
+		D1 = np.linspace(0, 3, spot_price.shape[-1])
+		D2 = torch.Tensor(D1)
+		#D1 = torch.arange(0, spot_price.shape[-1])
+		discount = D2.repeat(spot_price.shape[0], 1, 1)
+		#discount = D2 / spot_price.shape[-1]
+		#exercise_steps = [int(date / dt) for date in ex_times]
 
-		out = torch.zeros(spot_price.shape[0], 1, len(ex_times))
+		out = torch.zeros(spot_price.shape[0], 1, spot_price.shape[-1])
 
 		zeros = torch.zeros(spot_price.shape[0], 1)
 
-		for k in range(len(exercise_steps)):
-			i = exercise_steps[k]
-			out[:, :, k] = np.exp(-discount[:, :, i-1] * r) * torch.maximum(spot_price[:, :, i-1] - strike_price, zeros)
-
+		for k in range(spot_price.shape[-1]):
+			out[:, :, k] = np.exp(-discount[:, :, k]*r)*torch.maximum(spot_price[:, :, k] - strike_price, zeros)
 
 
 		out1 = out.squeeze(1)

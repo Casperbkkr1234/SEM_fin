@@ -14,7 +14,7 @@ sigma = 0.2
 delta = 0.1
 T = 1
 n_steps = int(T / dt)
-n_paths = 1000
+n_paths = 100
 S0 = 1
 n_exercises = n_steps
 exercise_dates = [i * T / n_exercises for i in range(1, n_exercises + 1)]
@@ -24,7 +24,7 @@ gbm = GBM(dt, mu, sigma, delta, n_steps, years=T, n_paths=n_paths, S0=S0)
 paths1 = gbm.GBM_analytic()
 
 # Network parameters
-widths = [100, 100]
+widths = [51, 51]
 dimension = 1
 strike = 1.1
 

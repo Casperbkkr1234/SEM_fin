@@ -1,32 +1,41 @@
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+import pandas as pd
 
 from Network.Process import GBM
 from Network.Lower_bound import L_hat
 from Network.Options import Options
 from Network.Portfolio import Max_Portfolio
 
+
+
 torch.set_default_dtype(torch.float64)
 
-# Parameters
+#  Parameters
 dt = 0.01
 r = 0.05
 mu = r  # r
 sigma = 0.2
 delta = 0.1
 T = 3
+
 n_steps = int(T / dt)
-n_paths = 100000
-portfolio_size = 10
-n_portfolios = int(n_paths/portfolio_size)
-S0 = 110
-n_exercises = 9
+
+n_paths = 1000
+portfolio_size = 2
+n_portfolios = int(n_paths / portfolio_size)
+
+S0 = 90
+n_exercises = 3
 
 # Network parameters
 dimension = portfolio_size
 widths = [50 + dimension, 50 + dimension]
 
+# Strike price of option
 strike = 100
+
 
 
 
@@ -69,10 +78,11 @@ ga2 = ga2.unsqueeze(1)
 # Calculate earliest stopping times
 min = bound.Tau(P2_stopped, n_exercises, exercise_dates, ga2, dt)
 
+
+
 l_bound = bound.Bound(ga2, min)
 print(l_bound*1.1)
 
-
-
-
 asdasd = 1
+
+
